@@ -15,6 +15,8 @@ class ResponseGenerator:
         self.max_tokens = config['ChatGPT']['max_tokens']
         self.max_message_num_in_context = config['ChatGPT']['max_message_num_in_context']
         self.model = config['ChatGPT']['response_generation_model']
+        openai.api_key = config['ChatGPT']['api_key']
+        openai.base_url = config['ChatGPT']['base_url']
 
         # 処理対象のユーザ発話に関する情報
         self.asr_timestamp = asr_timestamp
@@ -49,7 +51,7 @@ class ResponseGenerator:
         self.log(f"Call ChatGPT: {query=}")
 
         # ChatGPTに対話文脈を入力してストリーミング形式で応答の生成を開始
-        self.response = openai.ChatCompletion.create(
+        self.response = self.response = openai.chat.completions.create( #新版openai对应
             model=self.model,
             messages=messages,
             max_tokens=self.max_tokens,
@@ -82,10 +84,10 @@ class ResponseGenerator:
 
         # ChatGPTの応答を順次パースして返す
         for chunk in self.response:
-            chunk_message = chunk['choices'][0]['delta']
+            chunk_message = chunk.choices[0].delta #新版openai对应
 
-            if 'content' in chunk_message.keys():
-                new_token = chunk_message.get('content')
+            if chunk_message.content: #新版openai对应
+                new_token = chunk_message.content #新版openai对应
 
                 # 応答の断片を追加
                 if new_token != "/":
@@ -130,6 +132,7 @@ class ResponseChatGPT():
 
         # 設定の読み込み
         openai.api_key = config['ChatGPT']['api_key']
+        openai.base_url = config['ChatGPT']['base_url']
 
         # 入力されたユーザ発話に関する情報を保持する変数
         self.user_utterance = ''
@@ -145,7 +148,9 @@ class ResponseChatGPT():
 
         # ChataGPTを呼び出して応答の生成を開始
         self.response = ResponseGenerator(self.config, asr_timestamp, user_utterance, dialogue_history, self.prompts)
-
+        # print(f"[DEBUG] self information: {vars(self.response)}")
+        #for part in self.response :
+        #    self.response.log(part)
         # 自身をDialogueモジュールが持つLLMバッファに追加
         parent_llm_buffer.put(self)
 
@@ -154,6 +159,8 @@ if __name__ == "__main__":
     openai.api_key = '<enter your API key>'
 
     config = {'ChatGPT': {
+        'api_key': 'sk-aIL2qjyZZw8ei0NG9b32601371Cb4dB9Ad5b32Cd670dE3Ea',
+        'base_url': 'https://free.gpt.ge/v1/',
         'max_tokens': 64,
         'max_message_num_in_context': 3,
         'response_generation_model': 'gpt-3.5-turbo'
@@ -164,7 +171,7 @@ if __name__ == "__main__":
     dialogue_history = []
     prompts = {}
 
-    with open('./prompt/response.txt') as f:
+    with open('./prompt/response.txt', encoding="utf-8") as f:
         prompts['RESP'] = f.read()
 
     response_generator = ResponseGenerator(config, asr_timestamp, query, dialogue_history, prompts)

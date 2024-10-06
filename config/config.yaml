@@ -26,8 +26,8 @@ DIALOGUE:
   max_silence_time: 5.0 # sec
 
 ChatGPT:
-  api_url: "https://free.gpt.ge"
-  api_key: "sk-aIL2qjyZZw8ei0NG9b32601371Cb4dB9Ad5b32Cd670dE3Ea"
+  base_url: https://free.gpt.ge/v1/
+  api_key: sk-aIL2qjyZZw8ei0NG9b32601371Cb4dB9Ad5b32Cd670dE3Ea
   max_tokens: 128
   max_message_num_in_context: 4
   response_generation_model: "gpt-4o-mini" # "gpt-3.5-turbo", "gpt-4o-mini", "gpt-4"

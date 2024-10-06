@@ -109,14 +109,23 @@ class Dialogue(RemdisModule):
         while True:
             # IUを受信して保存
             input_iu = self.input_iu_buffer.get()
-            input_iu_video = self.input_iu_video_buffer.get()
+            # print(f"[DEBUG] Input IU: {input_iu}")
+            # input_iu_video = self.input_iu_video_buffer.get() # ここでエラーが出る_fix0.1
+            try: # fix0.1
+                input_iu_video = self.input_iu_video_buffer.get_nowait()
+            except queue.Empty:
+                input_iu_video = None
+            
             iu_memory.append(input_iu)
-            iu_video_memory.append(input_iu_video)
+            # iu_video_memory.append(input_iu_video) # fix0.1
+            if input_iu_video is not None: # fix0.1
+                iu_video_memory.append(input_iu_video)
 
             # IUがREVOKEだった場合はメモリから削除
             if input_iu["update_type"] == RemdisUpdateType.REVOKE:
                 iu_memory = self.util_func.remove_revoked_ius(iu_memory)
-            elif input_iu_video["update_type"] == RemdisUpdateType.REVOKE:
+            # elif input_iu_video["update_type"] == RemdisUpdateType.REVOKE: # fix0.1
+            elif input_iu_video is not None and input_iu_video["update_type"] == RemdisUpdateType.REVOKE: # fix0.1
                 iu_video_memory = self.util_func.remove_revoked_ius(iu_video_memory)
             # ADD/COMMITの場合は応答候補生成
             else:
@@ -132,6 +141,7 @@ class Dialogue(RemdisModule):
                 # ADDの場合は閾値以上のIUが溜まっているか確認し，溜まっていなければ次のIUもしくはCOMMITを待つ
                 if input_iu["update_type"] == RemdisUpdateType.ADD:
                     new_iu_count += 1
+                    # print(f"[DEBUG] Updated new IU count: {new_iu_count}")
                     if new_iu_count < self.response_generation_interval:
                         continue
                     else:
