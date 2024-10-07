@@ -1,11 +1,9 @@
-import sys
+
 import json
 import time
 import re
-import string
 import yaml
-
-import openai
+import requests
 
 from base import MMDAgentEXLabel
 
@@ -13,11 +11,10 @@ from base import MMDAgentEXLabel
 class ResponseGenerator:
     def __init__(self, config, asr_timestamp, query, dialogue_history, prompts):
         # 設定の読み込み
-        self.max_tokens = config['ChatGPT']['max_tokens']
-        self.max_message_num_in_context = config['ChatGPT']['max_message_num_in_context']
-        self.model = config['ChatGPT']['response_generation_model']
-        openai.api_key = config['ChatGPT']['api_key']
-        openai.base_url = config['ChatGPT']['base_url']
+        self.max_tokens = config['Ollama']['max_tokens']
+        self.max_message_num_in_context = config['Ollama']['max_message_num_in_context']
+        self.local_model_url = config['Ollama']['ollama_url']
+        self.model_name = config['Ollama']['llm_model']
 
         # 処理対象のユーザ発話に関する情報
         self.asr_timestamp = asr_timestamp
@@ -52,13 +49,18 @@ class ResponseGenerator:
         self.log(f"Call ChatGPT: {query=}")
 
         # ChatGPTに対話文脈を入力してストリーミング形式で応答の生成を開始
-        self.response = self.response = openai.chat.completions.create( #新版openai对应
-            model=self.model,
-            messages=messages,
-            max_tokens=self.max_tokens,
+        self.response = requests.post(
+            self.local_model_url,
+            json={
+                "model": self.model_name,
+                "max_tokens": self.max_tokens,
+                "messages": messages
+            },
             stream=True
         )
-    
+        self.response.raise_for_status()
+        self.response_lines = self.response.iter_lines()
+
     # Dialogueのsend_response関数で呼び出され，応答の断片を順次返す
     def __next__(self):
         # 引数（例: '1_喜び,6_会釈'）をパースして，expressionとactionを取得
@@ -83,14 +85,14 @@ class ResponseGenerator:
                 "action": action
             }
 
-        # ChatGPTの応答を順次パースして返す
-        for chunk in self.response:
-            chunk_message = chunk.choices[0].delta #新版openai对应
+        # Ollamaの応答を順次パースして返す,参考：https://tedboy.github.io/requests/adv13.html
+        for line in self.response_lines:
+            chunk_message = json.loads(line).get('message')
 
-            if chunk_message.content: #新版openai对应
-                new_token = chunk_message.content #新版openai对应
+            if chunk_message.get('content'):
+                new_token = chunk_message['content']
                 # print(f"[DEBUG] new_token: {new_token}")
-            
+
                 # 応答の断片を追加
                 if new_token != "/":
                     self.response_fragment += new_token
@@ -101,13 +103,14 @@ class ResponseGenerator:
 
                 # 次のループのために残りの断片を保持
                 self.response_fragment = splits[-1]
-                #print(f"[DEBUG] self.response_fragment: {self.response_fragment}")
+                # print(f"[DEBUG] self.response_fragment: {self.response_fragment}")
 
                 # 句読点が存在していた場合は1つ目の断片を返す
                 if len(splits) == 2 or new_token == "/":
                     if splits[0]:
+                        # print("phrase:", splits[0])  
                         return {"phrase": splits[0]}
-                
+
                 # 応答の最後が来た場合は残りの断片を返す
                 if new_token == "/":
                     if self.response_fragment:
@@ -117,9 +120,8 @@ class ResponseGenerator:
                 # ChatGPTの応答が完了した場合は残りの断片をパースして返す
                 if self.response_fragment:
                     return _parse_split(self.response_fragment)
-
         raise StopIteration
-    
+
     # ResponseGeneratorをイテレータ化
     def __iter__(self):
         return self
@@ -133,11 +135,7 @@ class ResponseChatGPT():
     def __init__(self, config, prompts):
         self.config = config
         self.prompts = prompts
-
-        # 設定の読み込み
-        openai.api_key = config['ChatGPT']['api_key']
-        openai.base_url = config['ChatGPT']['base_url']
-
+        
         # 入力されたユーザ発話に関する情報を保持する変数
         self.user_utterance = ''
         self.response = ''
@@ -174,6 +172,6 @@ if __name__ == "__main__":
         prompts['RESP'] = f.read()
 
     response_generator = ResponseGenerator(config, asr_timestamp, query, dialogue_history, prompts)
-
+    
     for part in response_generator:
         response_generator.log(part)

@@ -5,7 +5,7 @@ conda_env = "lc7"
 # 実行するスクリプトを指定
 sub = [
     "tin.py",
-    "dialogue.py",
+    "lllm_dialogue.py",
     "tout.py"
 ]
 script_directory = os.path.dirname(os.path.abspath(__file__))
