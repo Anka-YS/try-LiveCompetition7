@@ -11,13 +11,14 @@
 #### Completed
 - :sparkles:local_llmの実装
 - :sparkles:run.pyを追加
+- :rocket:音声対話
 
 </td>
 <td valign="top">
 
 #### In Progress
 - :sparkles:ASR & TTS のロケーション化
-- :ambulance:ズレ問題の解決
+- :ambulance:ズレ問題の解決(重要)
 
 </td>
 <td valign="top">
@@ -45,5 +46,5 @@ sub = [
 `MMDAgent-EX` の起動文は含まれていますが、コメントアウトを解除する必要があります。
 
 ## ロケーション化
-Ollama使っています、環境配置に問題がなければ、config内の[Ollama][llm_model]を変えば実行できると思います。
+Ollama使っています、環境配置に問題がなければ、config内の[Ollama][llm_model]を変えば実行できると思います。  
 正しく Ollama のストリームデータを処理するために、`lllm_dialogue.py` と `local_llm` にいくつかの変更を加えましたが、使用方法は配布されているプログラムと変わらないはずです。

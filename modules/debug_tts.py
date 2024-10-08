@@ -91,7 +91,7 @@ class TTS(RemdisModule):
                 elif self.engine_name == 'openjtalk':
                     x, sr = pyopenjtalk.tts(output_text, half_tone=-3.0)
                 elif self.engine_name == 'azure':
-                    with tempfile.NamedTemporaryFile() as temp_file:
+                    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
                         audio_config = speechsdk.audio.AudioOutputConfig(
                             use_default_speaker=False,
                             filename=temp_file.name,
@@ -111,12 +111,17 @@ class TTS(RemdisModule):
                                 </voice>
                             </speak>
                         """
+                        print("SSML Text:", ssml_text)
+
                         speech_synthesis_result = speech_synthesizer.speak_ssml_async(ssml=ssml_text).get()
                         if speech_synthesis_result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
+                            print("[DEBUG]:Audio synthesis successful")
+                            print(f"Audio file generated: {temp_file.name}, size: {os.path.getsize(temp_file.name)} bytes")
                             x, sr = librosa.load(temp_file.name, sr=self.rate)
                             x = (x * 32767).astype(numpy.int16)
                         elif speech_synthesis_result.reason == speechsdk.ResultReason.Canceled:
                             cancellation_details = speech_synthesis_result.cancellation_details
+                            print("[DEBUG]:Audio synthesis failed")
                             if cancellation_details.reason == speechsdk.CancellationReason.Error:
                                 if cancellation_details.error_details:
                                     print("Error details: {}".format(cancellation_details.error_details))

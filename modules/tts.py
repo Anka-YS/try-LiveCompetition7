@@ -100,7 +100,7 @@ class TTS(RemdisModule):
                 elif self.engine_name == "openjtalk":
                     x, sr = pyopenjtalk.tts(output_text, half_tone=-3.0)
                 elif self.engine_name == "azure":
-                    with tempfile.NamedTemporaryFile() as temp_file:
+                    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
                         audio_config = speechsdk.audio.AudioOutputConfig(
                             use_default_speaker=False,
                             filename=temp_file.name,

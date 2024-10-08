@@ -4,9 +4,11 @@ import subprocess
 conda_env = "lc7"
 # 実行するスクリプトを指定
 sub = [
-    "tin.py",
-    "lllm_dialogue.py",
-    "tout.py"
+    "input.py",
+    "audio_vap.py",
+    "asr.py",
+    "dialogue.py",
+    "tts.py",
 ]
 script_directory = os.path.dirname(os.path.abspath(__file__))
 
@@ -17,9 +19,8 @@ for command in sub:
     print(f"Executing: {full_command}")
     subprocess.Popen(full_command, shell=True)
 
-'''
+
 # MMDAgent-EXの実行
 post_script_command = f"cd /d {script_directory}\\MMDAgent-EX && cscript run.vbs"
 print(f"{post_script_command}")
 subprocess.Popen(post_script_command, shell=True)
-'''
