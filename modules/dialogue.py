@@ -5,7 +5,7 @@ import time
 
 import prompt.util as prompt_util
 from base import RemdisModule, RemdisState, RemdisUpdateType, RemdisUtil
-from modules.llm import ResponseChatGPT
+from llm import ResponseChatGPT
 
 
 class Dialogue(RemdisModule):
