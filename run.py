@@ -18,7 +18,7 @@ for command in sub:
     subprocess.Popen(full_command, shell=True)
 
 '''
-# GUIの実行
+# MMDAgent-EXの実行
 post_script_command = f"cd /d {script_directory}\\MMDAgent-EX && cscript run.vbs"
 print(f"{post_script_command}")
 subprocess.Popen(post_script_command, shell=True)
