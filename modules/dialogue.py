@@ -175,6 +175,7 @@ class Dialogue(RemdisModule):
         while True:
             # イベントに応じて状態を遷移
             event = self.event_queue.get()
+            
             prev_state = self.state
             self.state = RemdisState.transition[self.state][event]
             self.log(

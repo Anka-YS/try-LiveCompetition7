@@ -39,7 +39,7 @@ ChatGPT:
 
 Ollama:
   ollama_url: "http://localhost:11434/api/chat"
-  llm_model: "qwen2.5:7b"
+  llm_model: "qwen2:7b"
   max_tokens: 128
   max_message_num_in_context: 4
   prompts:

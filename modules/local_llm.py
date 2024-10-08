@@ -144,6 +144,7 @@ class ResponseChatGPT():
     
     # ChatGPTの呼び出しを開始
     def run(self, asr_timestamp, user_utterance, dialogue_history, last_asr_iu_id, parent_llm_buffer):
+        print(f"[DEBUG] ResponseChatGPT.run: {user_utterance=}")
         self.user_utterance = user_utterance
         self.last_asr_iu_id = last_asr_iu_id
         self.asr_time = asr_timestamp
